@@ -37,10 +37,10 @@ module subByteCombinational
 			mul2 <= mult_gf2_4({q, x});
 			mul3 <= mult_gf2_4({(q ^ w), x});
 			
-			mult_inv_out <= inv_iso_map({mul2, mul3});
+			// mult_inv_out <= inv_iso_map({mul2, mul3});
 			
 			// Affine transform
-			data_out <= aff_tf(mult_inv_out);
+			data_out <= aff_tf(inv_iso_map({mul2, mul3}));
 		end
 	end
 		
