@@ -10,18 +10,18 @@ module subByteCombinational
 	(
 	input [7:0] data_in,
 	input clk,
-	input rst,
+	input rst,			// active low
 	output reg [7:0] data_out
 	);
 
 
 	// Intermediete logic, based on Figure 3.1
-	reg [7:0] init_iso, mult_inv_out;
+	reg [7:0] init_iso;
 	reg [3:0] q, w, q1, w1, x, mul2, mul3;
 	
 	always @(posedge clk or negedge rst) begin
 		if (!rst) begin
-			data_out <= {8{1'b0}}; // assign entire data to 0
+			data_out <= data_in; // reset to original data
 		end else begin
 		// Sbox Multiplicative Inversion, Figure 2.1
 		//always @(*) begin // for purely combinational
@@ -36,9 +36,7 @@ module subByteCombinational
 			
 			mul2 <= mult_gf2_4({q, x});
 			mul3 <= mult_gf2_4({(q ^ w), x});
-			
-			// mult_inv_out <= inv_iso_map({mul2, mul3});
-			
+						
 			// Affine transform
 			data_out <= aff_tf(inv_iso_map({mul2, mul3}));
 		end
@@ -135,15 +133,15 @@ module subByteCombinational
 		// intermediete values
 		reg [3:0] q, w; 		// splitting 8-bit input into two 4-bit pieces
 		reg [1:0] mul1, mul2, mul3,  	// output of three GF(2) multiplications, mult with constant phi
-					  phi_out;				// output of multiplication with constant phi
+		phi_out;			// output of multiplication with constant phi
 		
 		begin		
 			q = data_in[7:4]; // q = [q3, q2, q1, q0]
 			w = data_in[3:0]; // w = [w3, w2, w1, w0]
 			
-			mul1 = mult_gf2({q[3:2], w[3:2]}); // top multiplication box
-			mul2 = mult_gf2({(q[3:2] ^ q[1:0]), (w[3:2] ^ w[1:0])}); // middle multiplication box
-			mul3 = mult_gf2({q[1:0], w[1:0]}); // bottom multiplication box
+			mul1 = mult_gf2({q[3:2], w[3:2]}); 				// top multiplication box
+			mul2 = mult_gf2({(q[3:2] ^ q[1:0]), (w[3:2] ^ w[1:0])}); 	// middle multiplication box
+			mul3 = mult_gf2({q[1:0], w[1:0]}); 				// bottom multiplication box
 
 			phi_out = mult_phi(mul1);
 			
@@ -186,15 +184,15 @@ module subByteCombinational
 		begin
 			mult_inv_gf2_4[3] = data[3] ^ (data[3] & data[2] & data[1]) ^ (data[3] & data[0]) ^ data[2];
 			mult_inv_gf2_4[2] = (data[3] & data[2] & data[1]) ^ (data[3] & data[2] & data[0]) ^
-										(data[3] & data[0]) ^ data[2] ^ (data[2] & data[1]);
+						(data[3] & data[0]) ^ data[2] ^ (data[2] & data[1]);
 			// space for readability
 			mult_inv_gf2_4[1] = data[3] ^ (data[3] & data[2] & data[1]) ^ (data[3] & data[1] & data[0]) ^
-										data[2] ^ (data[2] & data[0]) ^ data[1];
+							data[2] ^ (data[2] & data[0]) ^ data[1];
 			// space for readability
 			mult_inv_gf2_4[0] = (data[3] & data[2] & data[1]) ^ (data[3] & data[2] & data[0]) ^
-										(data[3] & data[1]) ^ (data[3] & data[1] & data[0]) ^ (data[3] & data[0])
-										^ data[2] ^ (data[2] & data[1]) ^ (data[2] & data[1] & data[0]) ^ 
-										data[1] ^ data[0]; 
+						(data[3] & data[1]) ^ (data[3] & data[1] & data[0]) ^ (data[3] & data[0])
+						^ data[2] ^ (data[2] & data[1]) ^ (data[2] & data[1] & data[0]) ^ 
+						data[1] ^ data[0]; 
 		end
 	endfunction
 
@@ -206,6 +204,7 @@ module subByteCombinatorial_testbench();
    wire [7:0] data;
 	wire [7:0] out;
 	reg clk;
+	reg rst;
 
 	assign data = 128'b00000100;
 	
@@ -214,9 +213,15 @@ module subByteCombinatorial_testbench();
 	initial clk = 1;
 
 	always begin
-		#(CLOCK_PERIOD/2) clk = ~clk;				// clock toggle
+		#(CLOCK_PERIOD/2) clk = ~clk;	// clock toggle
+	end
+	
+	initial begin 
+		rst = 0;
+		#100
+		rst = 1;
 	end
 
-	subByteCombinational dut(.data_in(data),.data_out(out));
+	subByteCombinational dut(.data_in(data), .clk(clk), .rst(rst), .data_out(out));
 
 endmodule
