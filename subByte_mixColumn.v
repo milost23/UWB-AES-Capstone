@@ -29,7 +29,7 @@ module subByte_mixColumn
 	always @(posedge clk or negedge rst) begin
 		if (!rst) begin
 			sb_mc_valid_out <= 1'b0;
-			sb_mc_valid_out <= sb_mc_valid_in;
+			sb_mc_data_out <= sb_mc_data_in;
 		end else begin 
 			if (sb_mc_valid_in) begin
 				 
@@ -121,7 +121,9 @@ module subByte_mixColumn
 				 state_out[7:0]		<= (adress[240 +:8])^(adress[260+12 +:8])^(adress[280+12 +:8])^({adress[300+18:300+16],adress[300+11:300+10],adress[300+13],adress[300+9:300+8]});
 
 			end
+			
 			sb_mc_valid_out <= sb_mc_valid_in;
+			
 		end
 	end										
 endmodule
