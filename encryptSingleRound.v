@@ -13,13 +13,13 @@ module encryptSingleRound
 	)
 	(
 	input clk,
-	input rst,										// Active low
-	input round_valid_in, 						// Valid bit in. When high, data is valid and should be processed
-	input wire [DATA_WIDTH-1:0] state_in, 	// Plaintext block data to be ecrypted
+	input rst,					// Active low
+	input round_valid_in, 				// Valid bit in. When high, data is valid and should be processed
+	input wire [DATA_WIDTH-1:0] state_in, 		// Plaintext block data to be ecrypted
 	input wire [KEY_WIDTH-1:0] key_in,		// Key used to encrypt plaintext data
-	output reg [DATA_WIDTH-1:0] state_out, // Block data which has gone through a single round of encryption
-	output reg round_valid_out 				// Valid bit out. When high, data is valid and can be used in another function.	
-	);													// end signals
+	output reg [DATA_WIDTH-1:0] state_out,		// Block data which has gone through a single round of encryption
+	output reg round_valid_out 			// Valid bit out. When high, data is valid and can be used in another function.	
+	);						// end signals
 
 	// intermediete variables
 	// NOTE: subByte and mixColumn layers are combined for optimization
@@ -33,16 +33,18 @@ module encryptSingleRound
 	
 	// subByte_mixColumn optimized module
 	subByte_mixColumn #(DATA_WIDTH) sb_mc(	.sb_mc_valid_in(round_valid_in),
-														.state_in(state_in),
-														.state_out(state1),
-														.sb_mc_valid_out(round_valid1));
+						.state_in(state_in),
+						.state_out(state1),
+						.sb_mc_valid_out(round_valid1)
+					     );
 														
 	
 	// shiftRow
 	shiftRow #(DATA_WIDTH) sr(	.shiftRow_valid_in(round_valid1),
-										.shiftRow_data_in(state1),
-										.shiftRow_data_out(state2),
-										.shiftRow_valid_out(round_valid2));
+					.shiftRow_data_in(state1),
+					.shiftRow_data_out(state2),
+					.shiftRow_valid_out(round_valid2)
+				 );
 	
 	// addRoundKey
 	/*addRoundKey #(KEY_WIDTH, DATA_WIDTH) ark(	.addRoundKey_valid_in(round_valid2),
