@@ -18,7 +18,7 @@ module shiftRow
 	input rst,					// active low
 	input shiftRow_valid_in, 			// Valid bit. When high, data is valid and should be processed.
 	input wire [DATA_WIDTH-1:0] shiftRow_data_in, 	// ShiftRow block data to be processed.
-		output reg [DATA_WIDTH-1:0] shiftRow_data_out,  // Block data which has gone through shiftRow function
+	output reg [DATA_WIDTH-1:0] shiftRow_data_out,  // Block data which has gone through shiftRow function
 	output reg shiftRow_valid_out 			// Valid bit. When high, data is valid and can be used in another function.	
 	);
 	
