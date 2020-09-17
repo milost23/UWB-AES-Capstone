@@ -1,16 +1,19 @@
 // Milos Trbic
 // AES Capstone - Joseph Decuir
-// Updated: 9/13/2020
+// Updated: 9/16/2020
 // Lower level Subbyte Module. This function will conduct the byte substitution operation
 // of AES encrypt on a single byte (8-bits) of data using purely logic rather than LUT
 //
 // UPDATES: added clock and reset to retrieve Fmax
+// Made purely combinational, can still retreive Fmax from "subByteCombinationalOld" file
+// COMPLETED
+//
+// NOTE: Developed based on "Practical Implementation of Rijndael S-Box Using Combinational Logic" paper
+//	"Section" comments refers to respective section in paper used to develop respective function
 
 module subByteCombinational
 	(
 	input [7:0] data_in,
-	input clk,
-	input rst,			// active low
 	output reg [7:0] data_out
 	);
 
@@ -19,33 +22,27 @@ module subByteCombinational
 	reg [7:0] init_iso;
 	reg [3:0] q, w, q1, w1, x, mul2, mul3;
 	
-	always @(posedge clk or negedge rst) begin
-		if (!rst) begin
-			data_out <= data_in; // reset to original data
-		end else begin
+	always @(*) begin
 		// Sbox Multiplicative Inversion, Figure 2.1
-		//always @(*) begin // for purely combinational
-			init_iso <= iso_map(data_in);
-			q <= init_iso[7:4];
-			w <= init_iso[3:0];
-			
-			q1 <= mult_lambda(squarer(q));
-			w1 <= mult_gf2_4({(q ^ w), w});
-			
-			x <= mult_inv_gf2_4(q1 ^ w1);
-			
-			mul2 <= mult_gf2_4({q, x});
-			mul3 <= mult_gf2_4({(q ^ w), x});
-						
-			// Affine transform
-			data_out <= aff_tf(inv_iso_map({mul2, mul3}));
-		end
+		init_iso = iso_map(data_in);
+		q = init_iso[7:4];
+		w = init_iso[3:0];
+		
+		q1 = mult_lambda(squarer(q));
+		w1 = mult_gf2_4({(q ^ w), w});
+		
+		x = mult_inv_gf2_4(q1 ^ w1);
+		
+		mul2 = mult_gf2_4({q, x});
+		mul3 = mult_gf2_4({(q ^ w), x});
+		
+		// Affine Transform
+		data_out = aff_tf(inv_iso_map({mul2, mul3}));
 	end
 		
+//=========================================================================
 
 	// Functions to be used for SubByte logic implementation
-	// Developed based on "Practical Implementation of Rijndael S-Box Using Combinational Logic" paper
-	// "Section" comment refers to respective section in paper used to develop function 
 
 	// Affine Transform, developed from matrix manipulation in Section 1.2
 	function [7:0] aff_tf;
@@ -187,7 +184,7 @@ module subByteCombinational
 						(data[3] & data[0]) ^ data[2] ^ (data[2] & data[1]);
 			// space for readability
 			mult_inv_gf2_4[1] = data[3] ^ (data[3] & data[2] & data[1]) ^ (data[3] & data[1] & data[0]) ^
-							data[2] ^ (data[2] & data[0]) ^ data[1];
+						data[2] ^ (data[2] & data[0]) ^ data[1];
 			// space for readability
 			mult_inv_gf2_4[0] = (data[3] & data[2] & data[1]) ^ (data[3] & data[2] & data[0]) ^
 						(data[3] & data[1]) ^ (data[3] & data[1] & data[0]) ^ (data[3] & data[0])
@@ -198,13 +195,13 @@ module subByteCombinational
 
 endmodule
 
+
 // Simple testbench using example from paper
 // Section 3 - Worked example
-module subByteCombinatorial_testbench();
+module subByteCombinational_testbench();
    wire [7:0] data;
 	wire [7:0] out;
 	reg clk;
-	reg rst;
 
 	assign data = 128'b00000100;
 	
@@ -215,13 +212,7 @@ module subByteCombinatorial_testbench();
 	always begin
 		#(CLOCK_PERIOD/2) clk = ~clk;	// clock toggle
 	end
-	
-	initial begin 
-		rst = 0;
-		#100
-		rst = 1;
-	end
 
-	subByteCombinational dut(.data_in(data), .clk(clk), .rst(rst), .data_out(out));
+	subByteCombinational dut(.data_in(data),.data_out(out));
 
 endmodule
