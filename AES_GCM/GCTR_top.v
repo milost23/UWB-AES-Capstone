@@ -13,29 +13,29 @@
 
 module GCTR_top
 	#(
-	parameter DATA_WIDTH = 1280,				// Bit size of block input, can be arbitrary size
-	parameter ICB_WIDTH = 128,					// Bit size of initial counter block input
-	parameter N = DATA_WIDTH / 128,			// Step 2 of algorithm, split input into N 128-bit blocks
-	parameter KEY_WIDTH = 128,
-	parameter ROM_WIDTH = 20,
-	parameter SELECT_SUBBYTE = 1,
-	parameter WORD = 32
+	parameter DATA_WIDTH = 1280,		// Bit size of block input, can be arbitrary size
+	parameter ICB_WIDTH = 128,		// Bit size of initial counter block input
+	parameter N = DATA_WIDTH / 128,		// Step 2 of algorithm, split input into N 128-bit blocks
+	parameter KEY_WIDTH = 128,		// Parameters for AES encryption core
+	parameter ROM_WIDTH = 20,		// "
+	parameter SELECT_SUBBYTE = 1,		// "
+	parameter WORD = 32			// "
 	)
 	(
 	input wire clk,
-	input wire rst,								// active low
+	input wire rst,				// active low
 	input wire [DATA_WIDTH-1:0] data_in,	// block input
-	input wire [ICB_WIDTH-1:0] icb_in,		// initial counter block
+	input wire [ICB_WIDTH-1:0] icb_in,	// initial counter block
 	output reg [DATA_WIDTH-1:0] data_out	// block output, same size as block input
 	);
 	
 	// intermediete logic
 	// NOTE: Indexed from 1 to N to match algorithm descriptio
-	genvar i;								// to be used in gemerate, to instantiate GCTR module
-	integer j;								// to be used in for loop to re-build output
-	wire [127:0] X [1:N]; 				// to store partitioned input, always 128-bit block size
-	wire [ICB_WIDTH-1:0] CB [1:N];	// to store counter blocks, always same block size as ICB
-	wire [127:0] Y [1:N]; 				// to store partitioned output, always same block size as input
+	genvar i;				// to be used in generate, to instantiate GCTR module
+	integer j;				// to be used in for loop to re-build output
+	wire [127:0] X [1:N]; 			// to store partitioned input, always 128-bit block size
+	wire [ICB_WIDTH-1:0] CB [1:N];		// to store counter blocks, always same block size as ICB
+	wire [127:0] Y [1:N]; 			// to store partitioned output, always same block size as input
 	
 	generate	
 	
