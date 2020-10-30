@@ -12,67 +12,16 @@
 
 module inc
 	#(
-	parameter S = 32,								// S right-most bits will be incremented
-	parameter DATA_WIDTH = 128 				// Will be the same as ICB_WIDTH since inc operation
-														// is only done on counter blocks
+	parameter S = 32,			// S right-most bits will be incremented
+	parameter DATA_WIDTH = 128 		// Will be the same as ICB_WIDTH since inc operation
+						// is only done on counter blocks
 	)
 	(
 	input wire clk,
-	input wire rst,								// Active low
+	input wire rst,				// Active low
 	input wire [DATA_WIDTH-1:0] data_in,	// Block data input to be processed
 	output reg [DATA_WIDTH-1:0] data_out	// Block data output which has underwent increment operation
 	);
-	
-	
-	// Method 1: Purely combinational
-	/*
-	always @(*) begin
-		if (DATA_WIDTH < S || S == 0) begin
-			data_out = data_in;
-		end else begin
-			data_out = {data_in[DATA_WIDTH-1:S], data_in[S-1:0] + 1'b1}; // increment
-		end
-	end
-	*/
-	
-	
-	// Method 2: Do operation using combinational, then update registers using sequential
-	/*
-	reg [DATA_WIDTH-1:0] temp;
-	
-	always @(data_in) begin
-		if (DATA_WIDTH < S || S == 0) begin
-			temp = data_in;
-		end else begin
-			temp = {data_in[DATA_WIDTH-1:S], data_in[S-1:0] + 1'b1}; // increment
-		end
-	end
-	
-	always @(posedge clk) begin
-		if (!rst) begin
-			data_out <= 0;
-		end else begin
-			// update output with S right-most bits incremented
-			data_out <= temp;
-		end
-	end
-	*/
-	
-	// Method 3: Purely sequential, asynchronus reset active low (Shorter Method 2)
-	/*
-	always @(posedge clk or negedge rst) begin
-		if (!rst) begin
-			data_out <= 0;
-		end else begin
-			if (DATA_WIDTH < S || S == 0) begin
-				data_out <= data_in;
-			end else begin
-				data_out <= {data_in[DATA_WIDTH-1:S], data_in[S-1:0] + 1'b1}; // increment
-			end
-		end
-	end
-	*/
-	
 	
 	always @(posedge clk or negedge rst) begin
 		if (!rst) begin
