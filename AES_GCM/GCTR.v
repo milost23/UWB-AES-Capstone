@@ -13,21 +13,21 @@
 
 module GCTR
 	#(
-	parameter DATA_WIDTH = 128,				// Bit size of block input, set to 128-bit
-	parameter ICB_WIDTH = 128,					// Bit size of initial counter block input, will define size for all CBs
-	parameter S = 32,								// Amount of right-most bits for increment operation
-	parameter KEY_WIDTH = 128,
-	parameter ROM_WIDTH = 20,
-	parameter SELECT_SUBBYTE = 1,
-	parameter WORD = 32
+	parameter DATA_WIDTH = 128,		// Bit size of block input, set to 128-bit
+	parameter ICB_WIDTH = 128,		// Bit size of initial counter block input, will define size for all CBs
+	parameter S = 32,			// Amount of right-most bits for increment operation
+	parameter KEY_WIDTH = 128,		// Parameters for AES encryption core
+	parameter ROM_WIDTH = 20,		// "
+	parameter SELECT_SUBBYTE = 1,		// "
+	parameter WORD = 32			// "
 	)
 	(
 	input wire clk,
-	input wire rst,								// Active Low
+	input wire rst,				// Active Low
 	input wire [DATA_WIDTH-1:0] data_in,	// block input Xn
-	input wire [ICB_WIDTH-1:0] cb_in,		// counter block input CBi
+	input wire [ICB_WIDTH-1:0] cb_in,	// counter block input CBi
 	output wire [DATA_WIDTH-1:0] data_out,	// block output Yn, same size as block input
-	output wire [ICB_WIDTH-1:0] cb_out		// next counter block output Cb(i+1)
+	output wire [ICB_WIDTH-1:0] cb_out	// next counter block output Cb(i+1)
 	);
 	
 	// temporary variable to store only the ciphertext of AES on the CB
