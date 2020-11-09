@@ -40,7 +40,6 @@ module GCTR_top
 	reg [127:0] X [1:N]; 			// to store partitioned input, always 128-bit block size
 	reg [ICB_WIDTH-1:0] CB [1:N];		// to store counter blocks, always same block size as ICB
 	reg [127:0] Y [1:N]; 			// to store partitioned output, always same block size as input
-	wire valid_temp;			// to connect valid out bit from N-1 block to N (final)
 	
 	generate	
 	
@@ -69,7 +68,7 @@ module GCTR_top
 				.keyLen(keyLen),
 				.data_out(Y[i]),
 				.cb_out(CB[i+1]),
-				.valid_out(valid_temp)
+				.valid_out()
 			); // end lower-level GCTR instantiation 
 		end
 		
@@ -79,7 +78,7 @@ module GCTR_top
 			.rst(rst),
 			.data_in(X[N]),
 			.cb_in(CB[N]),
-			.valid_in(valid_temp),
+			.valid_in(),
 			.key_in(key_in),
 			.keyLen(keyLen),
 			.data_out(Y[N]),
