@@ -28,6 +28,7 @@ module GCTR_top
 	input wire [ICB_WIDTH-1:0] icb_in,	// initial counter block
 	input wire valid_in,			// Valid bit in. When high, data is valid and should be processed
 	input wire [KEY_WIDTH-1:0] key_in, 	// key to be used for Block Cipher (AES core)
+	input wire keyLen,			// key length to be used for Block Cipher (AES core)
 	output reg [DATA_WIDTH-1:0] data_out,	// block output, same size as block input
 	output reg valid_out			// Valid bit out. When high, data is valid and can be used elsewhere
 	);
@@ -36,9 +37,10 @@ module GCTR_top
 	// NOTE: Indexed from 1 to N to match algorithm descriptio
 	genvar i;				// to be used in generate, to instantiate GCTR module
 	integer j;				// to be used in for loop to re-build output
-	wire [127:0] X [1:N]; 			// to store partitioned input, always 128-bit block size
-	wire [ICB_WIDTH-1:0] CB [1:N];		// to store counter blocks, always same block size as ICB
-	wire [127:0] Y [1:N]; 			// to store partitioned output, always same block size as input
+	reg [127:0] X [1:N]; 			// to store partitioned input, always 128-bit block size
+	reg [ICB_WIDTH-1:0] CB [1:N];		// to store counter blocks, always same block size as ICB
+	reg [127:0] Y [1:N]; 			// to store partitioned output, always same block size as input
+	wire valid_temp;			// to connect valid out bit from N-1 block to N (final)
 	
 	generate	
 	
@@ -56,13 +58,18 @@ module GCTR_top
 		for (i = 1; i < N; i = i + 1) begin :blockcipher
 			// Call the block cipher (AES) on counter blocks, XOR with data input
 			// Produce next counterblock
+			// S parameter in GCTR is set to 32 per Algorithm 3
 			GCTR #(DATA_WIDTH, ICB_WIDTH, 32, KEY_WIDTH, ROM_WIDTH, SELECT_SUBBYTE, WORD) Yn (
 				.clk(clk),
 				.rst(rst),
 				.data_in(X[i]),
 				.cb_in(CB[i]),
+				.valid_in(valid_in),
+				.key_in(key_in),
+				.keyLen(keyLen),
 				.data_out(Y[i]),
-				.cb_out(CB[i+1])
+				.cb_out(CB[i+1]),
+				.valid_out(valid_temp)
 			); // end lower-level GCTR instantiation 
 		end
 		
@@ -72,8 +79,12 @@ module GCTR_top
 			.rst(rst),
 			.data_in(X[N]),
 			.cb_in(CB[N]),
+			.valid_in(valid_temp),
+			.key_in(key_in),
+			.keyLen(keyLen),
 			.data_out(Y[N]),
-			.cb_out() // CB only goes up to N, and final one is calculated in above for loop
+			.cb_out(), // CB only goes up to N, and final one is calculated in above for loop
+			.valid_out(valid_out)
 		); // end lower-level GCTR instantiation
 		
 	endgenerate
