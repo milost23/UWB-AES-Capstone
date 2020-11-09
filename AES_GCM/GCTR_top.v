@@ -1,6 +1,6 @@
 // Milos Trbic
 // AES Capstone - Joseph Decuir
-// Updated: 10/29/2020
+// Updated: 11/9/2020
 // Top-level AES GCM Counter module. Deals with entire data input and splits it into
 // 128-bit block data for lower-level operations.
 //
@@ -26,7 +26,10 @@ module GCTR_top
 	input wire rst,				// active low
 	input wire [DATA_WIDTH-1:0] data_in,	// block input
 	input wire [ICB_WIDTH-1:0] icb_in,	// initial counter block
-	output reg [DATA_WIDTH-1:0] data_out	// block output, same size as block input
+	input wire valid_in,			// Valid bit in. When high, data is valid and should be processed
+	input wire [KEY_WIDTH-1:0] key_in, 	// key to be used for Block Cipher (AES core)
+	output reg [DATA_WIDTH-1:0] data_out,	// block output, same size as block input
+	output reg valid_out			// Valid bit out. When high, data is valid and can be used elsewhere
 	);
 	
 	// intermediete logic
@@ -86,80 +89,5 @@ module GCTR_top
 			end
 		end
 	end
-	
-	
-	//==========================================================================================
-	// BEGIN FUNCTIONS
-	/*
-	// Incrementing Function, Section 6.2
-	// Will only need to account for s = 32
-	function [ICB_WIDTH-1:0] inc;
-		input [ICB_WIDTH-1:0] X; // Input will always be a Counter Block, thus same size of ICB
-		
-		begin
-			// code to increment
-		end
-	endfunction
-	
-	// BEGIN MSB function and module
-	
-	// MSB operation, returns the s left-most bits of X, Section 6.1
-	// Used in increment function with s = ICB_WIDTH - 32
-	function [ICB_WIDTH-33:0] msb;
-		input [ICB_WIDTH-1:0] X; // Input will always be a Counter Block, thus same size of ICB		
-		begin
-			// code to return MSBs
-			msb = X[ICB_WIDTH-1:31];
-		end
-	endfunction
-	
-	// MSB operation implemented as a module
-	module msb
-		#(
-		parameter S = 0,
-		parameter LEN_X = 0
-		)
-		(
-		input wire [LEN_X-1:0] X,
-		output wire [LEN_X-1-S:0] msbX
-		);
-		
-		always @(*) begin
-			assign msbX = X[LEN_X-1:S-1];
-		end
-	endmodule
-	// END MSB function and module
-	
-	
-	// BEGIN LSB function and module
-
-	// LSB Function, returns the s right-most bits of X, Section 6.1
-	// Used in increment function with s = 32
-	function [31:0] lsb;
-		input [ICB_WIDTH-1:0] X;
-		
-		begin
-			// code to return MSBs
-			lsb = X[31:0];
-		end
-	endfunction
-	
-	// LSB operation implemented as a module
-	module lsb
-		#(
-		parameter S = 0,
-		parameter LEN_X = 0
-		)
-		(
-		input wire [LEN_X-1:0] X,
-		output wire [LEN_X-1-S:0] lsbX
-		);
-		
-		always @(*) begin
-			assign lsbX = X[S-1:0];
-		end
-	endmodule
-	// END LSB function and module
-	*/
 	
 endmodule
