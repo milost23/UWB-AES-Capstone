@@ -1,10 +1,11 @@
 // Milos Trbic
 // AES Capstone - Joseph Decuir
-// Updated: 10/29/2020
+// Updated: 11/9/2020
 // AES GCM Counter module. This module operates on 128-bit block data to perform Steps 5 and 6 of
-// Algorithm 3. This module takes an input block and counter block, applies the block cipher (AES
-// encrypt) to the counter block, and XORs the result with the input block to produce an output block.
-// This module also generates the next counter block by incrementing the previous counter block.
+// Algorithm 3 by connecting the Block Cipher and Increment operation. This module takes an input
+// block and counter block, applies the block cipher (AES encrypt) to the counter block, and XORs
+// the result with the input block to produce an output block. This module also generates the next
+// counter block by incrementing the previous counter block.
 //
 // Developed based on NIST SP 800-38D, "Recommendationfor Block Cipher Modes of
 // Operation: Galois/Counter Mode (GCM) and GMAC" (Section 6.5).
@@ -26,8 +27,12 @@ module GCTR
 	input wire rst,				// Active Low
 	input wire [DATA_WIDTH-1:0] data_in,	// block input Xn
 	input wire [ICB_WIDTH-1:0] cb_in,	// counter block input CBi
+	input wire valid_in,			// Valid bit in. When high, data is valid and should be processed
+	input wire [KEY_WIDTH-1:0] key_in, 	// key to be used for Block Cipher (AES core)
+	input wire keyLen,			// key length to be used for Block Cipher (AES core)
 	output wire [DATA_WIDTH-1:0] data_out,	// block output Yn, same size as block input
-	output wire [ICB_WIDTH-1:0] cb_out	// next counter block output Cb(i+1)
+	output wire [ICB_WIDTH-1:0] cb_out,	// next counter block output Cb(i+1)
+	output wire valid_out			// Valid bit out. When high, data is valid and can be used elsewhere
 	);
 	
 	// temporary variable to store only the ciphertext of AES on the CB
@@ -39,13 +44,13 @@ module GCTR
 	AEScore #(KEY_WIDTH, ICB_WIDTH, ROM_WIDTH, SELECT_SUBBYTE, WORD) ciph (
 		.clk(clk),
 		.rst(rst),
-		.valid_in(),
+		.valid_in(valid_in),
 		.plaintext_in(cb_in),
-		.key_in(),
-		.keyLen(),
+		.key_in(key_in),
+		.keyLen(keyLen),
 		.ciphertext_out(ciphertext),
 		.key_out(),
-		.valid_out()
+		.valid_out(valid_out)
 	); // end block cipher instantiation
 	
 	
